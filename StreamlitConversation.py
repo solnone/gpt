@@ -1,9 +1,9 @@
 # https://python.langchain.com/en/latest/modules/memory/types/buffer_window.html
 
 from langchain.prompts import (
-    ChatPromptTemplate, 
-    MessagesPlaceholder, 
-    SystemMessagePromptTemplate, 
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
     HumanMessagePromptTemplate
 )
 from langchain.chains import ConversationChain
@@ -28,7 +28,7 @@ def getConversation():
         MessagesPlaceholder(variable_name="history"),
         HumanMessagePromptTemplate.from_template("{input}")
     ])
-    
+
     llm = ChatOpenAI(temperature=0)
     memory = ConversationBufferWindowMemory(k=k, return_messages=True)
     conversation = ConversationChain(
@@ -42,15 +42,15 @@ def submit():
     if (len(user_input) > 1):
         conversation = st.session_state[conversation_key]
         conversation.predict(input=user_input)
-    
+
 def main():
     st.set_page_config(page_title="Conversation Buffer Window Memory", page_icon=":robot:")
     st.title("Conversation")
     st.markdown(f"System Message: {system_message}")
     st.header(f"Buffer Window Memory k={k}")
-    
+
     load_dotenv()
-    
+
     # Load the OpenAI API key from the environment variable
     if os.getenv("OPENAI_API_KEY") is None or os.getenv("OPENAI_API_KEY") == "":
         print("OPENAI_API_KEY is not set")
@@ -58,9 +58,9 @@ def main():
 
     if os.getenv("OPENAI_API_KEY") is None or os.getenv("OPENAI_API_KEY") == "":
         return
-    
+
     placeholder = st.empty()
-    
+
     if conversation_key not in st.session_state:
         st.session_state[conversation_key] = getConversation()
 
@@ -68,9 +68,9 @@ def main():
     with placeholder.container():
         for msg in conversation.memory.chat_memory.messages:
             if msg.type == human_message_key:
-                message(msg.content, is_user=True)    
+                message(msg.content, is_user=True)
             else:
-                message(msg.content)                          
+                message(msg.content)
 
     st.text_input(label="Enter your message", placeholder="Send a message", key="user_input", on_change=submit)
 

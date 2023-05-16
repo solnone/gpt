@@ -66,11 +66,11 @@ def main():
 
     conversation = st.session_state[conversation_key]
     with placeholder.container():
-        for msg in conversation.memory.chat_memory.messages:
+        for index, msg in enumerate(conversation.memory.chat_memory.messages):
             if msg.type == human_message_key:
-                message(msg.content, is_user=True)
+                message(msg.content, is_user=True, key=f"msg{index}")
             else:
-                message(msg.content)
+                message(msg.content, key=f"msg{index}")
 
     st.text_input(label="Enter your message", placeholder="Send a message", key="user_input", on_change=submit)
 

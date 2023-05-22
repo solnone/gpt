@@ -22,7 +22,11 @@ def main():
     else:
         print("OPENAI_API_KEY is set")
 
-    system_message = "You are a helpful assistant."
+    system_message = """
+The current environment is represented in JSON as follows, where 0 represents "close" and 1 represents "open":
+{{"light": 0,"door": 0}}
+Provide the JSON representation only, without adding any additional content or explanation.
+"""
     user_input = input(f"System Message (default=`{system_message}`): ")
     if len(user_input) > 0:
         system_message = user_input
@@ -41,23 +45,16 @@ def main():
         HumanMessagePromptTemplate.from_template("{input}")
     ])
     llm = ChatOpenAI(temperature=0)
-    # memory = ConversationBufferMemory(return_messages=True)
-    memory = ConversationBufferWindowMemory( k=k, return_messages=True)
-    memory.save_context({"Human": "hi"}, {"AI": "whats up"})
+    memory = ConversationBufferWindowMemory( k=k, return_messages=True)    
+    # memory.save_context({"Human": "Please help me turn on the light."}, {"AI": """{"light": 1,"door": 0}""" })
     conversation = ConversationChain(
       memory=memory, prompt=prompt, llm=llm, verbose=True
     )
 
     while True:
         user_input = input("> ")
-
         response = conversation.predict(input=user_input)
-        # messages.append(HumanMessage(content=user_input))
-        # assistant_response = chat(messages)
-        # messages.append(AIMessage(content=assistant_response.content))
-
         print(f"Assistant: {response}\n")
-
 
 if __name__ == '__main__':
     main()

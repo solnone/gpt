@@ -10,7 +10,6 @@ from langchain.chains import ConversationChain
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from dotenv import load_dotenv
-import os
 import json
 
 llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
@@ -35,16 +34,14 @@ Format your response as a JSON object with "msg", "light", "door" keys.
         memory = memory, prompt = prompt, llm = llm, verbose = True
     )
     return conversation
-        
+
+def get_state(response):
+    state = json.loads(response[response.find("{"):response.find("}") + 1])
+    # state = json.loads(response)
+    return state
+
 def main():
     load_dotenv()
-
-    # Load the OpenAI API key from the environment variable
-    if os.getenv("OPENAI_API_KEY") is None or os.getenv("OPENAI_API_KEY") == "":
-        print("OPENAI_API_KEY is not set")
-        exit(1)
-    else:
-        print("OPENAI_API_KEY is set")
 
     state = {
         "light": 0,
@@ -55,16 +52,16 @@ def main():
     while True:
         print(json.dumps(state))
         user_input = input("> ")
+        if len(user_input) == 0:
+            continue
+        
         conversation = create_chat(state)  
         response = conversation.predict(input=user_input)
+        print(f"Assistant: {response}\n")
         try:
-            state = json.loads(response[response.find("{"):response.find("}") + 1])
-
-            # state = json.loads(response)
+            state = get_state(response)
         except Exception as e:
             print(e)
-        
-        print(f"Assistant: {response}\n")
 
 if __name__ == '__main__':
     main()

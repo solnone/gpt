@@ -1,5 +1,3 @@
-# https://python.langchain.com/en/latest/modules/memory/types/buffer_window.html
-
 from langchain.prompts import (
     ChatPromptTemplate, 
     MessagesPlaceholder, 
@@ -11,11 +9,27 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from dotenv import load_dotenv
 import json
+import paho.mqtt.client as mqtt
+
+MQTT_SERVER = "broker.mqttdashboard.com"
+CLIENTID = "solomon_client_00098"
+PASSWORD = ""
+SUBTOPIC_LED = "esp32-dht22/LED"
+SUBTOPIC_DOOR = "esp32-dht22/DOOR"
+
+# 連線設定
+# 初始化地端程式
+client = mqtt.Client()
+# 設定登入帳號密碼
+client.username_pw_set(CLIENTID)
+
+# 設定連線資訊(IP, Port, 連線時間)
+client.connect(MQTT_SERVER, 1883, 60)
 
 llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 k = 0 # keep the last {k} interactions in memory
 memory = ConversationBufferWindowMemory(k = k, return_messages = True)    
-        
+
 def create_chat(state):
     system_message = f"""
 `no explanations`
@@ -37,6 +51,8 @@ Format your response as a JSON object with "msg", "light", "door" keys.
 
 def get_state(response):
     state = json.loads(response[response.find("{"):response.find("}") + 1])
+    client.publish(SUBTOPIC_LED, "on" if state["light"] == 1 else "off")
+    client.publish(SUBTOPIC_DOOR, "on" if state["door"] == 1 else "off")
     # state = json.loads(response)
     return state
 
